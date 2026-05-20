@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "458411131039",
+    "project_id": "parent-app-wos",
+    "storage_bucket": "parent-app-wos.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:458411131039:android:af8ac10ab0e2a4891d62aa",
+        "android_client_info": {
+          "package_name": "com.wis.parentapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzsPAEHHSnnWcT4TkP6X-iKY5suplaJUA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:458411131039:android:db3dffb5025271511d62aa",
+        "android_client_info": {
+          "package_name": "com.wos.parentapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzsPAEHHSnnWcT4TkP6X-iKY5suplaJUA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
