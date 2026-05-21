@@ -79,25 +79,25 @@ android {
         applicationId = "com.wis.parentapp"
         minSdk = 23
         targetSdk = flutter.targetSdkVersion
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.0.2"
 
 //        flutter.versionName=1.0.0
 //        flutter.versionCode=1
     }
 
     signingConfigs {
-      /*  create("release") {
+        create("release") {
             keyAlias = keyProperties["keyAlias"] as String
             keyPassword = keyProperties["keyPassword"] as String
             storeFile = keyProperties["storeFile"]?.let { file(it) }
             storePassword = keyProperties["storePassword"] as String
-        }*/
+        }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true       // ← change false to true
             isShrinkResources = true     // ← add this line
         }
