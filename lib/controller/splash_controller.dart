@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -50,22 +51,59 @@ class SplashController extends GetxController {
 
 
   Future<void> _saveDeviceToken() async {
-    final fcmToken = await FirebaseMessaging.instance.getToken();
-     final prefs = await SharedPreferences.getInstance();
-     final authToken = prefs.getString('auth_token') ?? '';  // wherever you store it
+    try {
+      /// ✅ iOS ke liye APNS token wait karo
+      if (Platform.isIOS) {
+        String? apnsToken;
 
-    print('fcmToken');
-    print(fcmToken);
-    print(authToken);
+        int retry = 0;
 
+        while (apnsToken == null && retry < 5) {
+          await Future.delayed(const Duration(seconds: 2));
 
-    if (fcmToken != null) {
-      final service = DeviceTokenService();
-      await service.saveDeviceToken(
-        token: fcmToken,
-        deviceType: Platform.isAndroid ? 'android' : 'ios',
-        authToken: authToken,
-      );
+          apnsToken =
+          await FirebaseMessaging.instance.getAPNSToken();
+
+          debugPrint('APNS Token: $apnsToken');
+
+          retry++;
+        }
+
+        /// Agar APNS token nahi mila to stop
+        if (apnsToken == null) {
+          debugPrint(
+            'APNS token not available. Skipping FCM token save.',
+          );
+          return;
+        }
+      }
+
+      /// ✅ FCM token
+      final fcmToken =
+      await FirebaseMessaging.instance.getToken();
+
+      // final prefs = await SharedPreferences.getInstance();
+      //
+      // final authToken =
+      //     prefs.getString('auth_token') ?? '';
+
+      debugPrint('FCM Token: $fcmToken');
+
+      // debugPrint('Auth Token: $authToken');
+
+      if (fcmToken != null && fcmToken.isNotEmpty) {
+        final service = DeviceTokenService();
+
+        await service.saveDeviceToken(
+          token: fcmToken,
+          deviceType:
+          Platform.isAndroid ? 'android' : 'ios',
+         // authToken: authToken,
+        );
+
+        debugPrint('Device token saved successfully');
+      }
+    } catch (e) {
+      debugPrint('Save device token error: $e');
     }
-  }
-}
+  }}

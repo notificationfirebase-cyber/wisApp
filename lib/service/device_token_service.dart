@@ -6,7 +6,7 @@ class DeviceTokenService {
   Future<bool> saveDeviceToken({
     required String token,
     required String deviceType, // 'android' or 'ios'
-    required String authToken,   // ← add thi
+   // required String authToken,   // ← add thi
   }) async {
     try {
       final response = await _dio.post(
@@ -19,7 +19,7 @@ class DeviceTokenService {
           headers: {
             'Content-Type': 'application/json',
             // Add auth header if needed:
-            'Authorization': 'Bearer $authToken',  // ← add this
+           // 'Authorization': 'Bearer $authToken',  // ← add this
          },
         ),
       );

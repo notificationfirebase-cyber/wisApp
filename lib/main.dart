@@ -1,117 +1,33 @@
-/*
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
-import 'package:get/get_navigation/src/root/get_material_app.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:wheaton_lms/routes/navigation_routes.dart';
-import 'common/connectivity_wrapper.dart';
-import 'common/notification_helper.dart';
-
-
-// Background handler
-@pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
-  //print('Handling background message: ${message.messageId}');
-}
-
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-FlutterLocalNotificationsPlugin();
-
-Future<void> requestPermission() async {
-  FirebaseMessaging messaging = FirebaseMessaging.instance;
-  NotificationSettings settings = await messaging.requestPermission(
-    alert: true,
-    badge: true,
-    sound: true,
-  );
-
-  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-    print('User granted permission');
-  } else {
-    print('User declined or has not accepted permission');
-  }
-}
-
-///push end
-void main() async{
-  WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
-  await Firebase.initializeApp();
-  ///Push
-
-  requestPermission();
-
-
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-  // Local notification settings
-  const AndroidInitializationSettings initializationSettingsAndroid =
-  AndroidInitializationSettings('@mipmap/ic_launcher');
-
-  const InitializationSettings initializationSettings =
-  InitializationSettings(android: initializationSettingsAndroid);
-
-  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-  ///push end
-*/
-/*  await Permission.microphone.request();
-  await Permission.phone.request();
-  await Permission.storage.request();*//*
-
-
-  // await Permission.location.request();
-  await Permission.notification.request(); // 👈 ADD THIS LINE
-
-  //await NotificationHelper.init();
-  ///rm end
-  runApp(const MyApp());
-
-}
-
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return GetMaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'WOS Parent',
-      initialRoute: Pages.initRoute,
-      getPages: Pages.appRoutes,
-      // Wraps every screen — auto-redirects when internet is lost
-      builder: (context, child) => ConnectivityWrapper(child: child!),
-    );
-  }
-}*/
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:get/get.dart';
+import 'package:wis_app/firebase_options.dart';
 import 'package:wis_app/routes/navigation_routes.dart';
+
 import 'common/connectivity_wrapper.dart';
 import 'controller/splash_controller.dart';
 
-// ✅ Must be top-level function
+/// ✅ Background notification handler
 @pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
-  print('Background message: ${message.notification?.title}');
+Future<void> _firebaseMessagingBackgroundHandler(
+    RemoteMessage message) async {
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  debugPrint(
+    'Background message: ${message.notification?.title}',
+  );
 }
 
+/// ✅ Local notification plugin
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 FlutterLocalNotificationsPlugin();
 
-// ✅ Notification channel for Android 8+
+/// ✅ Android notification channel
 const AndroidNotificationChannel channel = AndroidNotificationChannel(
   'high_importance_channel',
   'High Importance Notifications',
@@ -122,80 +38,142 @@ const AndroidNotificationChannel channel = AndroidNotificationChannel(
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  /// ✅ Lock orientation
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
 
-  // ✅ Step 1: Register background handler FIRST
-   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  /// ✅ Initialize Firebase
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
-  // ✅ Step 2: Initialize Firebase
-  await Firebase.initializeApp();
+  /// ✅ Register background handler
+  FirebaseMessaging.onBackgroundMessage(
+    _firebaseMessagingBackgroundHandler,
+  );
 
-  // ✅ Step 3: Request permission
+  /// ✅ Request notification permissions
+  NotificationSettings settings =
   await FirebaseMessaging.instance.requestPermission(
     alert: true,
     badge: true,
     sound: true,
+    provisional: false,
   );
 
-  // ✅ Step 4: Get & print FCM token
-  String? token = await FirebaseMessaging.instance.getToken();
-  print("=============================");
-  print("FCM Token: $token");
-  print("=============================");
+  debugPrint(
+    'Permission status: ${settings.authorizationStatus}',
+  );
 
-  // ✅ Step 5: Initialize local notifications
+  /// ✅ iOS APNS Token
+  if (GetPlatform.isIOS) {
+    await Future.delayed(const Duration(seconds: 2));
+
+    String? apnsToken =
+    await FirebaseMessaging.instance.getAPNSToken();
+
+    debugPrint('APNS Token: $apnsToken');
+  }
+
+  /// ✅ Get FCM Token
+  try {
+    String? fcmToken =
+    await FirebaseMessaging.instance.getToken();
+
+    debugPrint('FCM Token: $fcmToken');
+  } catch (e) {
+    debugPrint('FCM Token Error: $e');
+  }
+
+  /// ✅ Android local notification settings
   const AndroidInitializationSettings androidSettings =
   AndroidInitializationSettings('@mipmap/ic_launcher');
 
+  /// ✅ iOS local notification settings
+  const DarwinInitializationSettings iosSettings =
+  DarwinInitializationSettings(
+    requestAlertPermission: true,
+    requestBadgePermission: true,
+    requestSoundPermission: true,
+  );
+
+  /// ✅ Combined settings
+  const InitializationSettings initializationSettings =
+  InitializationSettings(
+    android: androidSettings,
+    iOS: iosSettings,
+  );
+
+  /// ✅ Initialize local notifications
   await flutterLocalNotificationsPlugin.initialize(
-    const InitializationSettings(android: androidSettings),
+    initializationSettings,
     onDidReceiveNotificationResponse: (details) {
-      print('Notification tapped: ${details.payload}');
-      // Navigate to screen based on payload if needed
+      debugPrint(
+        'Notification tapped: ${details.payload}',
+      );
     },
   );
 
-  // ✅ Step 6: Create notification channel
-// Step 6: Create notification channel
+  /// ✅ Create Android channel
   await flutterLocalNotificationsPlugin
-      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      .resolvePlatformSpecificImplementation<
+      AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel);
 
-  // ✅ Step 7: Foreground notification listener
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    print('Foreground message: ${message.notification?.title}');
-    RemoteNotification? notification = message.notification;
-    if (notification != null) {
-      flutterLocalNotificationsPlugin.show(
-        notification.hashCode,
-        notification.title,
-        notification.body,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            channel.id,
-            channel.name,
-            channelDescription: channel.description,
-            importance: Importance.high,
-            priority: Priority.high,
-            icon: '@mipmap/ic_launcher',
-          ),
-        ),
-        payload: message.data.toString(),
+  /// ✅ Foreground notifications
+  FirebaseMessaging.onMessage.listen(
+        (RemoteMessage message) async {
+      debugPrint(
+        'Foreground message: ${message.notification?.title}',
       );
-    }
-  });
 
-  // ✅ Step 8: Handle notification tap when app is in background
-  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    print('Notification tapped from background: ${message.data}');
-    // Add your navigation logic here
-  });
-  Get.put(SplashController(), permanent: true);
+      RemoteNotification? notification =
+          message.notification;
 
+      if (notification != null) {
+        await flutterLocalNotificationsPlugin.show(
+          notification.hashCode,
+          notification.title,
+          notification.body,
+          NotificationDetails(
+            android: AndroidNotificationDetails(
+              channel.id,
+              channel.name,
+              channelDescription: channel.description,
+              importance: Importance.high,
+              priority: Priority.high,
+              icon: '@mipmap/ic_launcher',
+            ),
+            iOS: const DarwinNotificationDetails(),
+          ),
+          payload: message.data.toString(),
+        );
+      }
+    },
+  );
+
+  /// ✅ Notification tap when app in background
+  FirebaseMessaging.onMessageOpenedApp.listen(
+        (RemoteMessage message) {
+      debugPrint(
+        'Notification tapped from background: ${message.data}',
+      );
+
+      /// Add navigation logic here
+    },
+  );
+
+  /// ✅ Dependency injection
+  Get.put(
+    SplashController(),
+    permanent: true,
+  );
 
   runApp(const MyApp());
 }
 
+/// ✅ Root App
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -206,7 +184,8 @@ class MyApp extends StatelessWidget {
       title: 'WIS Parent',
       initialRoute: Pages.initRoute,
       getPages: Pages.appRoutes,
-      builder: (context, child) => ConnectivityWrapper(child: child!),
+      builder: (context, child) =>
+          ConnectivityWrapper(child: child!),
     );
   }
 }

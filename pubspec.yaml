@@ -37,6 +37,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^3.0.0
   flutter_launcher_icons: ^0.14.4
+  names_launcher: ^0.0.2
 
 
 
@@ -48,7 +49,18 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/wisAppIcon.png"
+  image_path: "assets/icon/icon.png"
   min_sdk_android: 21
   adaptive_icon_background: "#002B3D"
-  adaptive_icon_foreground: "assets/images/wisAppIcon.png"
+  adaptive_icon_foreground: "assets/icon/icon.png"
+
+
+names_launcher:
+  name:
+    default: "WIS Parent"
+    zh: "中文名"
+  platforms:
+    android:
+      enable: true
+    ios:
+      enable: true

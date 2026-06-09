@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -59,7 +60,7 @@ class LoginController extends GetxController {
       ..loadRequest(Uri.parse(loginUrl));
   }
 
-  void _listenToConnectivity() {
+  Future<void> _listenToConnectivity() async {
     _connectivitySub =
         Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) async {
           final hasNetwork = results.any((r) => r != ConnectivityResult.none);
@@ -75,6 +76,21 @@ class LoginController extends GetxController {
             Get.toNamed(Pages.routeNoInternet);
           }
         });
+    print('---------------------------------');
+    print(await FirebaseMessaging.instance.getAPNSToken());
+    print('---------------------------------');
+    String? apnsToken;
+
+    do {
+      await Future.delayed(const Duration(seconds: 1));
+      apnsToken = await FirebaseMessaging.instance.getAPNSToken();
+    } while (apnsToken == null);
+
+    final fcmToken = await FirebaseMessaging.instance.getToken();
+    print('---------------------------------');
+    print(apnsToken);
+    print(fcmToken);
+    print('---------------------------------');
   }
 
   Future<void> _handleWebResourceError() async {
